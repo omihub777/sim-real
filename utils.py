@@ -140,19 +140,19 @@ class WarmUpCosineDecayScheduler(keras.callbacks.Callback):
 
 
 
-def parse_function(filename, label, size=224):
-    image_string = tf.io.read_file(filename)
-    image = tf.image.decode_jpeg(image_string, channels=3)
-    image = tf.image.convert_image_dtype(image, tf.float32)
-    image = tf.image.resize(image, [size, size])
-    return image, label
-
-def train_preprocess(image, label):
-    image = tf.image.random_flip_left_right(image)
-
-    return image, label
 
 def get_dataset(args):
+    def parse_function(filename, label):
+        image_string = tf.io.read_file(filename)
+        image = tf.image.decode_jpeg(image_string, channels=3)
+        image = tf.image.convert_image_dtype(image, tf.float32)
+        image = tf.image.resize(image, [args.size, args.size])
+        return image, label
+
+    def train_preprocess(image, label):
+        image = tf.image.random_flip_left_right(image)
+        return image, label
+
     if args.dataset == 'sim_real':
         # list_ds = tf.data.Dataset.list_files("data/trainB")
         train_img_paths_all = glob.glob(f"{args.data_path}/mask/*.png")
