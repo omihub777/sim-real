@@ -20,6 +20,7 @@ class WarmUpCosineDecayScheduler(keras.callbacks.Callback):
     """Cosine decay with warmup learning rate scheduler
     """
     def __init__(self,
+                 args,
                  learning_rate_base,
                  global_step_init=0,
                  warmup_learning_rate=0.0,
@@ -42,6 +43,7 @@ class WarmUpCosineDecayScheduler(keras.callbacks.Callback):
         """
 
         super(WarmUpCosineDecayScheduler, self).__init__()
+        self.args = args
         self.learning_rate_base = learning_rate_base
         self.global_step = global_step_init
         self.warmup_learning_rate = warmup_learning_rate
@@ -62,10 +64,11 @@ class WarmUpCosineDecayScheduler(keras.callbacks.Callback):
         self.learning_rates.append(lr)
 
     def on_batch_begin(self, batch, logs=None):
+        import IPython; IPython.embed(); exit(1)
         total_steps = int(
-            self.params['epochs'] * self.params['samples'] / self.params['batch_size'])
+            self.params['epochs'] * self.args.total_train_images / self.args.batch_size)
         warmup_steps = int(
-            self.warmup_epoch * self.params['samples']  / self.params['batch_size'])
+            self.warmup_epoch * self.args.total_train_images / self.args.batch_size)
         lr = self.cosine_decay_with_warmup(
             global_step=self.global_step,
             learning_rate_base=self.learning_rate_base,
@@ -155,6 +158,8 @@ def get_dataset(args):
         # list_ds = tf.data.Dataset.list_files("data/trainB")
         train_img_paths = glob.glob(f"{args.data_path}/mask/*.png")
         test_img_paths = glob.glob(f"{args.data_path}/valB/*.jpg")
+        args.total_train_images = len(train_img_paths)
+        args.total_test_images = len(test_img_paths)
         with open(f'{args.data_path}/id_to_label.txt','r') as f:
             id_to_label = f.readlines()
 
@@ -223,6 +228,6 @@ def get_optimizer(args):
 
 def get_lr_scheduler(args):
     if args.lr_scheduler=='cosine':
-        lr_scheduler = WarmUpCosineDecayScheduler(learning_rate_base=args.learning_rate, warmup_epoch=args.warmup_epoch)
+        lr_scheduler = WarmUpCosineDecayScheduler(args, learning_rate_base=args.learning_rate, warmup_epoch=args.warmup_epoch)
 
     return lr_scheduler
