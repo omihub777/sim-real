@@ -64,7 +64,7 @@ class WarmUpCosineDecayScheduler(keras.callbacks.Callback):
         self.learning_rates.append(lr)
 
     def on_batch_begin(self, batch, logs=None):
-        import IPython; IPython.embed(); exit(1)
+        # import IPython; IPython.embed(); exit(1)
         total_steps = int(
             self.params['epochs'] * self.args.total_train_images / self.args.batch_size)
         warmup_steps = int(
