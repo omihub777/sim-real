@@ -154,11 +154,10 @@ def train_preprocess(image, label):
 
 def get_dataset(args):
     if args.dataset == 'sim_real':
-        args.num_classes = 24
         # list_ds = tf.data.Dataset.list_files("data/trainB")
-        train_img_paths = glob.glob(f"{args.data_path}/mask/*.png")
-        test_img_paths = glob.glob(f"{args.data_path}/valB/*.jpg")
-        args.total_train_images = len(train_img_paths)
+        train_img_paths_all = glob.glob(f"{args.data_path}/mask/*.png")
+        # test_img_paths = glob.glob(f"{args.data_path}/valB/*.jpg")
+        test_img_paths = glob.glob(f"{args.data_path}/trainB/*.jpg")
         args.total_test_images = len(test_img_paths)
         with open(f'{args.data_path}/id_to_label.txt','r') as f:
             id_to_label = f.readlines()
@@ -166,8 +165,19 @@ def get_dataset(args):
         id_to_object_dict = {l.split('  ')[0]: int(l.split('  ')[1].replace('\n','')) for l in id_to_label}
         object_to_label_dict = {object_:i for i,object_ in enumerate(id_to_object_dict.values())}
 
+        test_ids = [img_path.split('/')[-1].split('_')[0] for img_path in test_img_paths]
+        test_labels = [object_to_label_dict[id_to_object_dict[id_]] for id_ in test_ids]
+        test_object_set = [id_to_object_dict.get(test_id) for test_id in set(test_ids)]
+        args.num_classes = len(test_object_set)
+
+        # train_img_paths = [img_path for img_path in train_img_paths_all if int(img_path.split('-')[-1].replace('object','').replace('.png','')) in test_object_set]
+        train_img_paths = []
+        for img_path in train_img_paths_all:
+            object_ = int(img_path.split('-')[-1].replace('object','').replace('.png',''))
+            if object_ in test_object_set:
+                train_img_paths.append(img_path)
+        args.total_train_images = len(train_img_paths)
         train_labels = [object_to_label_dict[int(img_path.split('-')[-1].replace('object','').replace('.png',''))] for img_path in train_img_paths]
-        test_labels = [object_to_label_dict[id_to_object_dict[img_path.split('/')[-1].split('_')[0]]] for img_path in test_img_paths]
         # import IPython ; IPython.embed();exit(1)
 
         train_ds = tf.data.Dataset.from_tensor_slices((train_img_paths, train_labels))
@@ -201,14 +211,14 @@ def get_dataset(args):
         raise NotImplementedError(f"{args.dataset} is NOT existing.")
     return train_ds, test_ds
     
-# if __name__ == "__main__":
-#     import argparse
-#     args = argparse.Namespace()
-#     args.dataset = 'sim_real'
-#     args.batch_size = 16
-#     args.eval_batch_size = 64
-#     args.data_path = 'data'
-#     train_ds, test_ds = get_dataset(args)
+if __name__ == "__main__":
+    import argparse
+    args = argparse.Namespace()
+    args.dataset = 'sim_real'
+    args.batch_size = 16
+    args.eval_batch_size = 64
+    args.data_path = 'data'
+    train_ds, test_ds = get_dataset(args)
 
 
 def get_model(args):
