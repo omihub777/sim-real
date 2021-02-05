@@ -178,7 +178,7 @@ def get_dataset(args):
                 train_img_paths.append(img_path)
         args.total_train_images = len(train_img_paths)
         train_labels = [object_to_label_dict[int(img_path.split('-')[-1].replace('object','').replace('.png',''))] for img_path in train_img_paths]
-        # import IPython ; IPython.embed();exit(1)
+        import IPython ; IPython.embed();exit(1)
 
         train_ds = tf.data.Dataset.from_tensor_slices((train_img_paths, train_labels))
         train_ds = train_ds.shuffle(len(train_labels))
