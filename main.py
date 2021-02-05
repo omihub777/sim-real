@@ -22,6 +22,7 @@ parser.add_argument("--epochs", default=100, type=int)
 parser.add_argument("--size", default=224, type=int)
 parser.add_argument("--mixed-precision", action="store_true")
 parser.add_argument("--lr-scheduler", default="cosine", type=str, help=["cosine"])
+parser.add_argument("--warmup-epoch", default=10, type=int)
 args = parser.parse_args()
 
 if args.mixed_precision:
