@@ -18,14 +18,21 @@ parser.add_argument("--beta-2", default=0.999, type=float)
 parser.add_argument("--batch-size",default=16, type=int)
 parser.add_argument("--eval-batch-size", default=64, type=int)
 parser.add_argument("--data-path",required=True)
+parser.add_argument("--epochs", default=100, type=int)
+parser.add_argument("--size", default=224, type=int)
+parser.add_argument("--mixed-precision", action="store_true")
 args = parser.parse_args()
+
+if args.mixed_precision:
+    print("Applied: Mixed Precision")
+    mixed_precision.set_global_policy("mixed_float16")
 
 train_ds, test_ds = get_dataset(args)
 model = get_model(args)
 criterion = get_criterion(args)
 optimizer = get_optimizer(args)
 model.compile(loss=criterion, optimizer=optimizer, metrics=['accuracy'])
-model.fit(train_ds, validation_data=test_ds, epochs=1)
+model.fit(train_ds, validation_data=test_ds, epochs=args.epochs)
 
 # if __name__ == "__main__":
 #     b, h, w, c = 4, 224, 224, 3

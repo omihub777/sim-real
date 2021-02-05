@@ -13,8 +13,15 @@ Test NNs using real images.
 
 ## TODO
 * create valB_crop
-* GPU-mode
-* Commit to GitLab
 * Save weights
 * Log results
-* Run on Colab
+* Other models
+* Cosine LR Scheduler
+* Mixed Precision
+* Early Stopping
+* Size argument for resize
+
+
+## Done
+* GPU-mode: TF2 automatically run on gpu if available
+* Run on Colab: git clone
