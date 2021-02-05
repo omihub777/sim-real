@@ -181,7 +181,22 @@ def get_dataset(args):
         test_ds = test_ds.map(parse_function, num_parallel_calls=4)
         test_ds = test_ds.batch(args.eval_batch_size)
         test_ds = test_ds.prefetch(1)
+    elif args.dataset=='c10' or args.dataset=='mnist':
+        args.num_classes = 10
+        if args.dataset=='c10':
+            (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
+        elif args.dataset=='mnist':
+            (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+            x_train = x_train[..., tf.newaxis].astype("float32")
+            x_test = x_test[..., tf.newaxis].astype("float32")
+        args.total_train_images = x_train.shape[0]
+        args.total_test_images = x_test.shape[0]
 
+        x_train, x_test = x_train / 255.0, x_test / 255.0
+        train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train)).shuffle(10000).batch(args.batch_size)
+        test_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(args.eval_batch_size)
+        train_ds = train_ds.prefetch(1)
+        test_ds = test_ds.prefetch(1)
     else:
         raise NotImplementedError(f"{args.dataset} is NOT existing.")
     return train_ds, test_ds
