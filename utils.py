@@ -224,3 +224,5 @@ def get_optimizer(args):
 def get_lr_scheduler(args):
     if args.lr_scheduler=='cosine':
         lr_scheduler = WarmUpCosineDecayScheduler(learning_rate_base=args.learning_rate, warmup_epoch=args.warmup_epoch)
+
+    return lr_scheduler
