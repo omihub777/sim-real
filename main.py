@@ -36,7 +36,6 @@ logger = comet_ml.Experiment(
     auto_param_logging=True,
 )
 
-
 if args.mixed_precision:
     print("Applied: Mixed Precision")
     tf.keras.mixed_precision.set_global_policy("mixed_float16")
@@ -50,6 +49,7 @@ early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', mode='max'
 model.compile(loss=criterion, optimizer=optimizer, metrics=['accuracy'])
 logger.set_name(f"{args.model_name}")
 with logger.train():
+    logger.log_parameters(dict(args))
     model.fit(train_ds, validation_data=test_ds, epochs=args.epochs, callbacks=[lr_scheduler, early_stop])
     filename =f'{args.model_name}.hdf5'
     model.save_weights(filename)
