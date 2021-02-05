@@ -33,9 +33,6 @@ logger = comet_ml.Experiment(
     project_name="sim_real",
     auto_metric_logging=True,
     auto_param_logging=True,
-    auto_histogram_weight_logging=True,
-    auto_histogram_gradient_logging=True,
-    auto_histogram_activation_logging=True,   
 )
 
 
