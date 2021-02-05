@@ -25,7 +25,7 @@ args = parser.parse_args()
 
 if args.mixed_precision:
     print("Applied: Mixed Precision")
-    mixed_precision.set_global_policy("mixed_float16")
+    tf.keras.mixed_precision.set_global_policy("mixed_float16")
 
 train_ds, test_ds = get_dataset(args)
 model = get_model(args)
