@@ -140,7 +140,7 @@ class WarmUpCosineDecayScheduler(keras.callbacks.Callback):
 
 
 
-def parse_function(filename, label, size=64):
+def parse_function(filename, label, size=224):
     image_string = tf.io.read_file(filename)
     image = tf.image.decode_jpeg(image_string, channels=3)
     image = tf.image.convert_image_dtype(image, tf.float32)

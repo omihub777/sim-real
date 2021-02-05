@@ -2,10 +2,10 @@ import sys
 import os
 sys.path.append(os.path.abspath("model"))
 
+import comet_ml
 import tensorflow as tf
 import argparse
 from utils import get_model, get_dataset, get_criterion,get_optimizer, get_lr_scheduler
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--dataset", default="sim_real", help='[sim_real,]', type=str)
@@ -25,6 +25,20 @@ parser.add_argument("--lr-scheduler", default="cosine", type=str, help=["cosine"
 parser.add_argument("--warmup-epoch", default=10, type=int)
 args = parser.parse_args()
 
+with open("data/api_key.txt",'r') as f:
+    api_key = f.readline()
+
+logger = comet_ml.Experiment(
+    api_key=api_key,
+    project_name="sim_real",
+    auto_metric_logging=True,
+    auto_param_logging=True,
+    auto_histogram_weight_logging=True,
+    auto_histogram_gradient_logging=True,
+    auto_histogram_activation_logging=True,   
+)
+
+
 if args.mixed_precision:
     print("Applied: Mixed Precision")
     tf.keras.mixed_precision.set_global_policy("mixed_float16")
@@ -35,7 +49,10 @@ criterion = get_criterion(args)
 optimizer = get_optimizer(args)
 lr_scheduler = get_lr_scheduler(args)
 model.compile(loss=criterion, optimizer=optimizer, metrics=['accuracy'])
-model.fit(train_ds, validation_data=test_ds, epochs=args.epochs, callbacks=[lr_scheduler])
+
+logger.set_name(f"{args.model_name}")
+with logger.train():
+    model.fit(train_ds, validation_data=test_ds, epochs=args.epochs, callbacks=[lr_scheduler])
 
 # if __name__ == "__main__":
 #     b, h, w, c = 4, 224, 224, 3
