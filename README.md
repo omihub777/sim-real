@@ -17,7 +17,6 @@ Test NNs using real images.
 * Log results
 * Other models
 * Cosine LR Scheduler
-* Mixed Precision
 * Early Stopping
 * Size argument for resize
 
@@ -25,7 +24,7 @@ Test NNs using real images.
 ## Done
 * GPU-mode: TF2 automatically run on gpu if available
 * Run on Colab: git clone
-
+* Mixed Precision: P100 is not compatible with Mixed Precision...
 
 ## Ref.
 * [Building an image data pipeline](https://cs230.stanford.edu/blog/datapipeline/#building-an-image-data-pipeline)

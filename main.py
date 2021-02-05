@@ -4,7 +4,7 @@ sys.path.append(os.path.abspath("model"))
 
 import tensorflow as tf
 import argparse
-from utils import get_model, get_dataset, get_criterion,get_optimizer
+from utils import get_model, get_dataset, get_criterion,get_optimizer, get_lr_scheduler
 
 
 parser = argparse.ArgumentParser()
@@ -21,6 +21,7 @@ parser.add_argument("--data-path",required=True)
 parser.add_argument("--epochs", default=100, type=int)
 parser.add_argument("--size", default=224, type=int)
 parser.add_argument("--mixed-precision", action="store_true")
+parser.add_argument("--lr-scheduler", default="cosine", type=str, help=["cosine"])
 args = parser.parse_args()
 
 if args.mixed_precision:
@@ -31,8 +32,9 @@ train_ds, test_ds = get_dataset(args)
 model = get_model(args)
 criterion = get_criterion(args)
 optimizer = get_optimizer(args)
+lr_scheduler = get_lr_scheduler(args)
 model.compile(loss=criterion, optimizer=optimizer, metrics=['accuracy'])
-model.fit(train_ds, validation_data=test_ds, epochs=args.epochs)
+model.fit(train_ds, validation_data=test_ds, epochs=args.epochs, callbacks=[lr_scheduler])
 
 # if __name__ == "__main__":
 #     b, h, w, c = 4, 224, 224, 3
