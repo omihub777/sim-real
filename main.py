@@ -46,18 +46,23 @@ model = get_model(args)
 criterion = get_criterion(args)
 optimizer = get_optimizer(args)
 lr_scheduler = get_lr_scheduler(args)
-early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', mode='max', patience=args.patience, restore_best_weights=True)
+early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', mode='max', patience=args.patience, restore_best_weights=True)
 model.compile(loss=criterion, optimizer=optimizer, metrics=['accuracy'])
-
+model.build()
 logger.set_name(f"{args.model_name}")
 with logger.train():
     model.fit(train_ds, validation_data=test_ds, epochs=args.epochs, callbacks=[lr_scheduler, early_stop])
     filename =f'{args.model_name}.hdf5'
     model.save_weights(filename)
     logger.log_asset(filename)
-    model = get_model(args)
-    model.load_weights(filename)
-    model.evaluate(test_ds)
+
+    # Load model weights.
+    # model = get_model(args)
+    # model.build((2, 224,224,3)) # Build
+    # model.load_weights(filename) # Load
+    # Compile
+    # model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['acc'])
+    # model.evaluate(test_ds) # Evaluate
 
 # if __name__ == "__main__":
 #     b, h, w, c = 4, 224, 224, 3
