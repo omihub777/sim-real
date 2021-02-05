@@ -48,7 +48,6 @@ optimizer = get_optimizer(args)
 lr_scheduler = get_lr_scheduler(args)
 early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', mode='max', patience=args.patience, restore_best_weights=True)
 model.compile(loss=criterion, optimizer=optimizer, metrics=['accuracy'])
-model.build()
 logger.set_name(f"{args.model_name}")
 with logger.train():
     model.fit(train_ds, validation_data=test_ds, epochs=args.epochs, callbacks=[lr_scheduler, early_stop])
