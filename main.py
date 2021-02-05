@@ -22,7 +22,8 @@ parser.add_argument("--epochs", default=100, type=int)
 parser.add_argument("--size", default=224, type=int)
 parser.add_argument("--mixed-precision", action="store_true")
 parser.add_argument("--lr-scheduler", default="cosine", type=str, help=["cosine"])
-parser.add_argument("--warmup-epoch", default=10, type=int)
+parser.add_argument("--warmup-epoch", default=5, type=int)
+parser.add_argument("--patience", default=5, type=int)
 args = parser.parse_args()
 
 with open("data/api_key.txt",'r') as f:
@@ -45,11 +46,18 @@ model = get_model(args)
 criterion = get_criterion(args)
 optimizer = get_optimizer(args)
 lr_scheduler = get_lr_scheduler(args)
+early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', mode='max', patience=args.patience, restore_best_weights=True)
 model.compile(loss=criterion, optimizer=optimizer, metrics=['accuracy'])
 
 logger.set_name(f"{args.model_name}")
 with logger.train():
-    model.fit(train_ds, validation_data=test_ds, epochs=args.epochs, callbacks=[lr_scheduler])
+    model.fit(train_ds, validation_data=test_ds, epochs=args.epochs, callbacks=[lr_scheduler, early_stop])
+    filename =f'{args.model_name}.hdf5'
+    model.save_weights(filename)
+    logger.log_asset(filename)
+    model = get_model(args)
+    model.load_weights(filename)
+    model.evaluate(test_ds)
 
 # if __name__ == "__main__":
 #     b, h, w, c = 4, 224, 224, 3
