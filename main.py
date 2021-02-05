@@ -49,7 +49,8 @@ early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', mode='max'
 model.compile(loss=criterion, optimizer=optimizer, metrics=['accuracy'])
 logger.set_name(f"{args.model_name}")
 with logger.train():
-    logger.log_parameters(dict(args))
+    # import IPython; IPython.embed() ; exit(1)
+    logger.log_parameters(vars(args))
     model.fit(train_ds, validation_data=test_ds, epochs=args.epochs, callbacks=[lr_scheduler, early_stop])
     filename =f'{args.model_name}.hdf5'
     model.save_weights(filename)

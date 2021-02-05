@@ -6,9 +6,7 @@ Test NNs using real images.
 ## TODO(High)
 ### High
 * create valB_crop
-* Save weights
 * Other models
-* Early Stopping
 * Size argument for resize
 * Log learning rate
 
@@ -25,6 +23,9 @@ Test NNs using real images.
 * Warmup
 * Log results: Need [comet.ml](https://www.comet.ml/) api-key in data/api_key.txt
 * Check with cifar-10/mnist
+* Early Stopping
+* Save weights
+
 
 ### Low
 
