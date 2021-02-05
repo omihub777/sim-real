@@ -201,14 +201,14 @@ def get_dataset(args):
         raise NotImplementedError(f"{args.dataset} is NOT existing.")
     return train_ds, test_ds
     
-if __name__ == "__main__":
-    import argparse
-    args = argparse.Namespace()
-    args.dataset = 'sim_real'
-    args.batch_size = 16
-    args.eval_batch_size = 64
-    args.data_path = 'data'
-    train_ds, test_ds = get_dataset(args)
+# if __name__ == "__main__":
+#     import argparse
+#     args = argparse.Namespace()
+#     args.dataset = 'sim_real'
+#     args.batch_size = 16
+#     args.eval_batch_size = 64
+#     args.data_path = 'data'
+#     train_ds, test_ds = get_dataset(args)
 
 
 def get_model(args):

@@ -4,5 +4,6 @@
 data/*
 __pycache__/
 *.py[cod]
+memo.md
 
 !data/.gitkeep

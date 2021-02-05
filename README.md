@@ -2,14 +2,6 @@
 
 Train NNs using only synthetic images.
 Test NNs using real images.
-## Data
-* Directories:
-    * **mask**: Synthetic Images(ONLY objects) **USED FOR TRAINING**.
-    * **trainB**: Real Images for training(objects+tray). NOT USED.
-    * **valB**: Real Images for validation(objects+tray). MIGHT BE USED FOR TEST.
-    * **valB_crop**: Real Images for validation(ONLY objects). **USED FOR TEST**.
-
-
 
 ## TODO(High)
 ### High
@@ -32,7 +24,7 @@ Test NNs using real images.
 * Cosine LR Scheduler
 * Warmup
 * Log results: Need [comet.ml](https://www.comet.ml/) api-key in data/api_key.txt
-* Check with cifar-10
+* Check with cifar-10/mnist
 
 ### Low
 
