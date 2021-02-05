@@ -163,11 +163,11 @@ def get_dataset(args):
             id_to_label = f.readlines()
 
         id_to_object_dict = {l.split('  ')[0]: int(l.split('  ')[1].replace('\n','')) for l in id_to_label}
-        object_to_label_dict = {object_:i for i,object_ in enumerate(id_to_object_dict.values())}
+        # object_to_label_dict = {object_:i for i,object_ in enumerate(id_to_object_dict.values())}
 
         test_ids = [img_path.split('/')[-1].split('_')[0] for img_path in test_img_paths]
-        test_labels = [object_to_label_dict[id_to_object_dict[id_]] for id_ in test_ids]
         test_object_set = [id_to_object_dict.get(test_id) for test_id in set(test_ids)]
+        object_to_label_dict = {object_:i for i,object_ in enumerate(test_object_set)}
         args.num_classes = len(test_object_set)
 
         # train_img_paths = [img_path for img_path in train_img_paths_all if int(img_path.split('-')[-1].replace('object','').replace('.png','')) in test_object_set]
@@ -178,7 +178,8 @@ def get_dataset(args):
                 train_img_paths.append(img_path)
         args.total_train_images = len(train_img_paths)
         train_labels = [object_to_label_dict[int(img_path.split('-')[-1].replace('object','').replace('.png',''))] for img_path in train_img_paths]
-        import IPython ; IPython.embed();exit(1)
+        test_labels = [object_to_label_dict[id_to_object_dict[id_]] for id_ in test_ids]
+        # import IPython ; IPython.embed();exit(1)
 
         train_ds = tf.data.Dataset.from_tensor_slices((train_img_paths, train_labels))
         train_ds = train_ds.shuffle(len(train_labels))
