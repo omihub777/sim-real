@@ -9,4 +9,5 @@ memo.md
 trainB_mask/
 *.zip
 *.hdf5
+*.h5
 !data/.gitkeep

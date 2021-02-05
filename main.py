@@ -9,7 +9,7 @@ from utils import get_model, get_dataset, get_criterion,get_optimizer, get_lr_sc
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--dataset", default="sim_real", help='[sim_real, c10, mnist]', type=str)
-parser.add_argument("--model-name", required=True, help='[preact18, ]', type=str)
+parser.add_argument("--model-name", required=True, help='[preact18, preact34, preact50 ]', type=str)
 parser.add_argument("--criterion", default="crossentropy", help="[crossentropy,]",type=str)
 parser.add_argument("--optimizer", default="adam", help="[adam,]", type=str)
 parser.add_argument("--learning-rate", default=1e-3, type=float)
