@@ -5,5 +5,8 @@ data/*
 __pycache__/
 *.py[cod]
 memo.md
-
+*.ipynb
+trainB_mask/
+*.zip
+*.hdf5
 !data/.gitkeep

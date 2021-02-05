@@ -157,7 +157,8 @@ def get_dataset(args):
         # list_ds = tf.data.Dataset.list_files("data/trainB")
         train_img_paths_all = glob.glob(f"{args.data_path}/mask/*.png")
         # test_img_paths = glob.glob(f"{args.data_path}/valB/*.jpg")
-        test_img_paths = glob.glob(f"{args.data_path}/trainB/*.jpg")
+        # test_img_paths = glob.glob(f"{args.data_path}/trainB/*.jpg")
+        test_img_paths = glob.glob(f"{args.data_path}/trainB_mask/*.jpg")
         args.total_test_images = len(test_img_paths)
         with open(f'{args.data_path}/id_to_label.txt','r') as f:
             id_to_label = f.readlines()
