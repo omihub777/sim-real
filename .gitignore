@@ -11,3 +11,4 @@ trainB_mask/
 *.hdf5
 *.h5
 !data/.gitkeep
+.DS_Store
