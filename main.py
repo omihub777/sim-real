@@ -51,18 +51,19 @@ logger.set_name(f"{args.model_name}")
 with logger.train():
     # import IPython; IPython.embed() ; exit(1)
     logger.log_parameters(vars(args))
-    model.fit(train_ds, validation_data=test_ds, epochs=args.epochs, callbacks=[lr_scheduler, early_stop])
     filename =f'{args.model_name}.hdf5'
+    mc = tf.keras.callbacks.ModelCheckpoint(filename, monitor='val_accuracy', mode='max', save_best_only=True, verbose=True)
+    model.fit(train_ds, validation_data=test_ds, epochs=args.epochs, callbacks=[lr_scheduler, early_stop, mc])
     model.save_weights(filename)
     logger.log_asset(filename)
 
     # Load model weights.
-    # model = get_model(args)
-    # model.build((2, 224,224,3)) # Build
-    # model.load_weights(filename) # Load
+    model = get_model(args)
+    model.build((2, 224,224,3)) # Build
+    model.load_weights(filename) # Load
     # Compile
-    # model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['acc'])
-    # model.evaluate(test_ds) # Evaluate
+    model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['acc'])
+    model.evaluate(test_ds) # Evaluate
 
 # if __name__ == "__main__":
 #     b, h, w, c = 4, 224, 224, 3
