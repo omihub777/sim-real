@@ -13,3 +13,4 @@ trainB_mask/
 !data/.gitkeep
 .DS_Store
 reports/
+weights/

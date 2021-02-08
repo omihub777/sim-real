@@ -13,6 +13,7 @@ from tensorflow.keras.callbacks import (
     LearningRateScheduler,
     TensorBoard
 )
+import pickle
 
 
 # Code: https://gist.github.com/scorrea92/b9485cbe26cb010e81af02b6c5d0c2ab
@@ -144,7 +145,8 @@ class WarmUpCosineDecayScheduler(keras.callbacks.Callback):
 def get_dataset(args):
     def parse_function(filename, label):
         image_string = tf.io.read_file(filename)
-        image = tf.image.decode_jpeg(image_string, channels=3)
+        image = tf.io.decode_png(image_string, channels=3)
+        # image = tf.io.decode_image(image_string, channels=3)
         image = tf.image.convert_image_dtype(image, tf.float32)
         image = tf.image.resize(image, [args.size, args.size])
         return image, label
@@ -158,17 +160,24 @@ def get_dataset(args):
         train_img_paths_all = glob.glob(f"{args.data_path}/mask/*.png")
         # test_img_paths = glob.glob(f"{args.data_path}/valB/*.jpg")
         # test_img_paths = glob.glob(f"{args.data_path}/trainB/*.jpg")
-        test_img_paths = glob.glob(f"{args.data_path}/trainB_mask/*.png")
+        # test_img_paths = glob.glob(f"{args.data_path}/trainB_mask/*.png")
+        test_img_paths = glob.glob(f"{args.data_path}/trainB_mask_bk/*.png")
         args.total_test_images = len(test_img_paths)
-        with open(f'{args.data_path}/id_to_label.txt','r') as f:
-            id_to_label = f.readlines()
+        with open(f'{args.data_path}/id_to_object.txt','r') as f:
+            id_to_object = f.readlines()
 
-        id_to_object_dict = {l.split('  ')[0]: int(l.split('  ')[1].replace('\n','')) for l in id_to_label}
+        id_to_object_dict = {l.split('  ')[0]: int(l.split('  ')[1].replace('\n','')) for l in id_to_object}
         # object_to_label_dict = {object_:i for i,object_ in enumerate(id_to_object_dict.values())}
 
         test_ids = [img_path.split('/')[-1].split('_')[0] for img_path in test_img_paths]
         test_object_set = [id_to_object_dict.get(test_id) for test_id in set(test_ids)]
-        object_to_label_dict = {object_:i for i,object_ in enumerate(test_object_set)}
+        if not os.path.exists("data/object_to_label_dict.dict"):
+            object_to_label_dict = {object_:i for i,object_ in enumerate(test_object_set)}
+            with open("data/object_to_label_dict.dict", 'wb') as fw:
+                pickle.dump(object_to_label_dict, fw, protocol=pickle.HIGHEST_PROTOCOL)
+        else:
+            with open("data/object_to_label_dict.dict", 'rb') as f:
+                object_to_label_dict = pickle.load(f)
         args.num_classes = len(test_object_set)
 
         # train_img_paths = [img_path for img_path in train_img_paths_all if int(img_path.split('-')[-1].replace('object','').replace('.png','')) in test_object_set]

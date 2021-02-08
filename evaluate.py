@@ -21,7 +21,7 @@ parser.add_argument("--eval-batch-size", default=64, type=int)
 
 args = parser.parse_args()
 
-_, test_ds = get_dataset(args)
+train_ds, test_ds = get_dataset(args)
 model = get_model(args)
 
 if __name__=='__main__':
@@ -29,4 +29,12 @@ if __name__=='__main__':
     model.load_weights(args.weight_path) # Load
     # Compile
     model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['acc'])
+    # import IPython; IPython.embed();exit(1)
+    labels, preds = [], []
+    for img,label in test_ds:
+        labels += list(label.numpy())
+        preds += list(model.predict(img).argmax(1))
+    cm = tf.math.confusion_matrix(labels, preds)
+    print(cm)
+
     model.evaluate(test_ds) # Evaluate
