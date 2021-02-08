@@ -54,7 +54,7 @@ with logger.train():
     filename =f'{args.model_name}.hdf5'
     mc = tf.keras.callbacks.ModelCheckpoint(filename, monitor='val_accuracy', mode='max', save_best_only=True, verbose=True)
     model.fit(train_ds, validation_data=test_ds, epochs=args.epochs, callbacks=[lr_scheduler, early_stop, mc])
-    model.save_weights(filename)
+    # model.save_weights(filename)
     logger.log_asset(filename)
 
     # Load model weights.
