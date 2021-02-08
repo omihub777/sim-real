@@ -87,7 +87,7 @@ class WarmUpCosineDecayScheduler(keras.callbacks.Callback):
         if self.verbose > 0:
             print('\nBatch %05d: setting learning '
                   'rate to %s.' % (self.global_step + 1, lr))
-
+#
     def cosine_decay_with_warmup(self, global_step,
                                  learning_rate_base,
                                  total_steps,
