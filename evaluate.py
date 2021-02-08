@@ -9,6 +9,10 @@ sys.path.append(os.path.abspath("model"))
 import tensorflow as tf
 import argparse
 from utils import get_model, get_dataset
+import seaborn as sns
+import pandas as pd
+import matplotlib.pyplot as plt
+import pickle
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--weight-path", required=True, type=str)
@@ -36,5 +40,13 @@ if __name__=='__main__':
         preds += list(model.predict(img).argmax(1))
     cm = tf.math.confusion_matrix(labels, preds)
     print(cm)
-
-    model.evaluate(test_ds) # Evaluate
+    with open("data/label_to_id_dict.dict", "rb") as f:
+        label_to_id_dict = pickle.load(f)
+    label_ids = [label_to_id_dict[i] for i in range(args.num_classes)]
+    df_cm = pd.DataFrame(cm.numpy(), index=label_ids, columns=label_ids)
+    plt.figure(figsize=(10,7))
+    sns.heatmap(df_cm, annot=True)
+    hist = model.evaluate(test_ds) # Evaluate
+    # import IPython; IPython.embed();exit(1)
+    plt.title(f"Loss:{round(hist[0],4)}, Acc:{round(hist[1]*100, 4)}")
+    plt.show()

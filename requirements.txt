@@ -1,2 +1,5 @@
 comet-ml
 tensorflow
+seaborn
+pandas
+matplotlib
