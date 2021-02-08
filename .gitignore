@@ -12,3 +12,4 @@ trainB_mask/
 *.h5
 !data/.gitkeep
 .DS_Store
+reports/
