@@ -13,7 +13,12 @@ from utils import get_model, get_dataset
 parser = argparse.ArgumentParser()
 parser.add_argument("--weight-path", required=True, type=str)
 parser.add_argument("--model-name", required=True, type=str, help=['preact50'])
+parser.add_argument("--data-path",default="data")
 parser.add_argument("--dataset", default="sim_real",type=str)
+parser.add_argument("--size", default=224, type=int)
+parser.add_argument("--batch-size",default=16, type=int)
+parser.add_argument("--eval-batch-size", default=64, type=int)
+
 args = parser.parse_args()
 
 _, test_ds = get_dataset(args)
