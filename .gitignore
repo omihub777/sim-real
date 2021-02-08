@@ -14,3 +14,4 @@ trainB_mask/
 .DS_Store
 reports/
 weights/
+*.png

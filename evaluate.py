@@ -49,4 +49,6 @@ if __name__=='__main__':
     hist = model.evaluate(test_ds) # Evaluate
     # import IPython; IPython.embed();exit(1)
     plt.title(f"Loss:{round(hist[0],4)}, Acc:{round(hist[1]*100, 4)}")
+    plt.tight_layout()
+    plt.savefig("baseline.png")
     plt.show()
