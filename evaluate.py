@@ -16,7 +16,7 @@ parser.add_argument("--model-name", required=True, type=str, help=['preact50'])
 parser.add_argument("--dataset", default="sim_real",type=str)
 args = parser.parse_args()
 
-_, test_ds = get_model(args)
+_, test_ds = get_dataset(args)
 model = get_model(args)
 
 if __name__=='__main__':
