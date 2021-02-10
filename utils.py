@@ -241,7 +241,7 @@ def get_model(args):
         net = PreAct34(args.num_classes)
     elif args.model_name=='preact50':
         from model.preact50 import PreAct50
-        net = PreAct50(args.num_classes)
+        net = PreAct50(args.num_classes, freeze=args.freeze)
     else:
         raise NotImplementedError(f"{args.model_name} is NOT implemented yet.")
 
