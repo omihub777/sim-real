@@ -5,7 +5,8 @@ sys.path.append(os.path.abspath("model"))
 import comet_ml
 import tensorflow as tf
 import argparse
-from utils import get_model, get_dataset, get_criterion,get_optimizer, get_lr_scheduler
+from utils import get_model, get_dataset, get_criterion,get_optimizer,\
+     get_lr_scheduler, get_experiment_name
 #
 parser = argparse.ArgumentParser()
 parser.add_argument("--dataset", default="sim_real", help='[sim_real, c10, mnist]', type=str)
@@ -48,7 +49,8 @@ optimizer = get_optimizer(args)
 lr_scheduler = get_lr_scheduler(args)
 early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', mode='max', patience=args.patience, restore_best_weights=True)
 model.compile(loss=criterion, optimizer=optimizer, metrics=['accuracy'])
-logger.set_name(f"{args.model_name}")
+experiment_name = get_experiment_name(args)
+logger.set_name(experiment_name)
 with logger.train():
     # import IPython; IPython.embed() ; exit(1)
     logger.log_parameters(vars(args))

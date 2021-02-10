@@ -270,3 +270,10 @@ def get_lr_scheduler(args):
         lr_scheduler = WarmUpCosineDecayScheduler(args, learning_rate_base=args.learning_rate, warmup_epoch=args.warmup_epoch)
 
     return lr_scheduler
+
+
+def get_experiment_name(args):
+    experiment_name = f"{args.model_name}"
+    if args.freeze:
+        experiment_name += "_freeze"
+    return experiment_name
