@@ -3,6 +3,7 @@ import tensorflow.keras.layers as layers
 
 class PreAct50(tf.keras.Model):
     def __init__(self, num_classes, weights='imagenet', freeze=False):
+        """PreAct50. If `freeze`, all blocks before stage4 will be frozen."""
         super(PreAct50, self).__init__()
         self.net = tf.keras.applications.ResNet50V2(include_top=False, weights=weights, pooling="avg")
         self.fc = layers.Dense(num_classes)
