@@ -26,7 +26,7 @@ parser.add_argument("--lr-scheduler", default="cosine", type=str, help=["cosine"
 parser.add_argument("--warmup-epoch", default=5, type=int)
 parser.add_argument("--patience", default=5, type=int)
 parser.add_argument("--freeze", action="store_true")
-parser.add_argument("--freeze-upto", default=4, help="[2,3,4,5,'full']")
+parser.add_argument("--freeze-upto", default="4", help="[2,3,4,5,full]")
 args = parser.parse_args()
 
 with open("data/api_key.txt",'r') as f:
