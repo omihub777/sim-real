@@ -241,7 +241,7 @@ def get_model(args):
         net = PreAct34(args.num_classes)
     elif args.model_name=='preact50':
         from model.preact50 import PreAct50
-        net = PreAct50(args.num_classes, freeze=args.freeze)
+        net = PreAct50(args.num_classes, freeze=args.freeze, freeze_upto=args.freeze_upto)
     else:
         raise NotImplementedError(f"{args.model_name} is NOT implemented yet.")
 
@@ -275,5 +275,5 @@ def get_lr_scheduler(args):
 def get_experiment_name(args):
     experiment_name = f"{args.model_name}"
     if args.freeze:
-        experiment_name += "_freeze"
+        experiment_name += f"_freeze_{args.freeze_upto}"
     return experiment_name
