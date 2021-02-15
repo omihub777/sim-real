@@ -13,7 +13,7 @@ parser.add_argument("--dataset", default="sim_real", help='[sim_real, c10, mnist
 parser.add_argument("--model-name", required=True, help='[preact18, preact34, preact50 ]', type=str)
 parser.add_argument("--criterion", default="crossentropy", help="[crossentropy,]",type=str)
 parser.add_argument("--optimizer", default="adam", help="[adam,]", type=str)
-parser.add_argument("--learning-rate", default=1e-3, type=float)
+parser.add_argument("--learning-rate", default=1e-4, type=float)
 parser.add_argument("--beta-1", default=0.9, type=float)
 parser.add_argument("--beta-2", default=0.999, type=float)
 parser.add_argument("--batch-size",default=16, type=int)
@@ -26,8 +26,14 @@ parser.add_argument("--lr-scheduler", default="cosine", type=str, help=["cosine"
 parser.add_argument("--warmup-epoch", default=5, type=int)
 parser.add_argument("--patience", default=5, type=int)
 parser.add_argument("--freeze", action="store_true")
-parser.add_argument("--freeze-upto", default="4", help="[2,3,4,5,full]")
+parser.add_argument("--freeze-upto", default="5")
 args = parser.parse_args()
+
+if args.model_name=='effb3':
+    args.size=300
+elif args.model_name=='effb4':
+    args.size=380
+
 
 with open("data/api_key.txt",'r') as f:
     api_key = f.readline()

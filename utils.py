@@ -242,6 +242,11 @@ def get_model(args):
     elif args.model_name=='preact50':
         from model.preact50 import PreAct50
         net = PreAct50(args.num_classes, freeze=args.freeze, freeze_upto=args.freeze_upto)
+    elif 'effb' in args.model_name:
+        from model.efficientnet import EfficientNet
+        version = int(args.model_name.replace('effb',''))
+        assert version == 3 or version == 4
+        net = EfficientNet(version, num_classes=args.num_classes, weights='noisy', freeze=args.freeze, freeze_upto=args.freeze_upto)
     else:
         raise NotImplementedError(f"{args.model_name} is NOT implemented yet.")
 

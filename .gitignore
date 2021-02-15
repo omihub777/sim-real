@@ -15,3 +15,6 @@ trainB_mask/
 reports/
 weights/
 *.png
+*.tar.gz
+efficientnet_weight_update_util.py
+noisy-student-efficientnet-b*/
