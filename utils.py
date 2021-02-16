@@ -153,6 +153,11 @@ def get_dataset(args):
 
     def train_preprocess(image, label):
         image = tf.image.random_flip_left_right(image)
+        image = tf.image.random_flip_up_down(image)
+        image = tf.image.resize_with_crop_or_pad(image, args.size+args.padding*2, args.size+args.padding*2)
+        image = tf.image.random_crop(image, [args.size, args.size, 3])
+        image = tf.image.random_brightness(image, 0.2)
+        image = tf.image.random_contrast(image, lower=0.8, upper=1.2)
         return image, label
 
     if args.dataset == 'sim_real':

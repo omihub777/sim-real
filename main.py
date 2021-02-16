@@ -7,7 +7,14 @@ import tensorflow as tf
 import argparse
 from utils import get_model, get_dataset, get_criterion,get_optimizer,\
      get_lr_scheduler, get_experiment_name
-#
+
+from tensorflow.compat.v1 import ConfigProto
+from tensorflow.compat.v1 import InteractiveSession
+
+config = ConfigProto()
+config.gpu_options.allow_growth = True
+session = InteractiveSession(config=config)
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--dataset", default="sim_real", help='[sim_real, c10, mnist]', type=str)
 parser.add_argument("--model-name", required=True, help='[preact18, preact34, preact50 ]', type=str)
@@ -33,7 +40,7 @@ if args.model_name=='effb3':
     args.size=300
 elif args.model_name=='effb4':
     args.size=380
-
+args.padding = int(args.size//8)
 
 with open("data/api_key.txt",'r') as f:
     api_key = f.readline()

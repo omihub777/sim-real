@@ -6,9 +6,9 @@ class EfficientNet(tf.keras.Model):
         if weights is not None:
             weights = f"efficientnetb{version}_notop.h5"
         if version==3:
-            self.base = tf.keras.applications.EfficientNetB3(include_top=False, weights=weights)
+            self.base = tf.keras.applications.EfficientNetB3(include_top=False, weights=weights, pooling='avg')
         elif version==4:
-            self.base = tf.keras.applications.EfficientNetB4(include_top=False, weights=weights)
+            self.base = tf.keras.applications.EfficientNetB4(include_top=False, weights=weights, pooling='avg')
         else:
             ValueError(f"What is EfficientNet-B{version}?")
 
