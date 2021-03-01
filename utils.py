@@ -153,6 +153,11 @@ def get_dataset(args):
 
     def train_preprocess(image, label):
         image = tf.image.random_flip_left_right(image)
+        image = tf.image.random_flip_up_down(image)
+        image = tf.image.resize_with_crop_or_pad(image, args.size+args.padding*2, args.size+args.padding*2)
+        image = tf.image.random_crop(image, [args.size, args.size, 3])
+        image = tf.image.random_brightness(image, 0.2)
+        image = tf.image.random_contrast(image, lower=0.8, upper=1.2)
         return image, label
 
     if args.dataset == 'sim_real':
@@ -241,7 +246,12 @@ def get_model(args):
         net = PreAct34(args.num_classes)
     elif args.model_name=='preact50':
         from model.preact50 import PreAct50
-        net = PreAct50(args.num_classes)
+        net = PreAct50(args.num_classes, freeze=args.freeze, freeze_upto=args.freeze_upto)
+    elif 'effb' in args.model_name:
+        from model.efficientnet import EfficientNet
+        version = int(args.model_name.replace('effb',''))
+        assert version == 3 or version == 4
+        net = EfficientNet(version, num_classes=args.num_classes, weights='noisy', freeze=args.freeze, freeze_upto=args.freeze_upto)
     else:
         raise NotImplementedError(f"{args.model_name} is NOT implemented yet.")
 
@@ -270,3 +280,10 @@ def get_lr_scheduler(args):
         lr_scheduler = WarmUpCosineDecayScheduler(args, learning_rate_base=args.learning_rate, warmup_epoch=args.warmup_epoch)
 
     return lr_scheduler
+
+
+def get_experiment_name(args):
+    experiment_name = f"{args.model_name}"
+    if args.freeze:
+        experiment_name += f"_freeze_{args.freeze_upto}"
+    return experiment_name

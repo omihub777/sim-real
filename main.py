@@ -5,14 +5,22 @@ sys.path.append(os.path.abspath("model"))
 import comet_ml
 import tensorflow as tf
 import argparse
-from utils import get_model, get_dataset, get_criterion,get_optimizer, get_lr_scheduler
-#
+from utils import get_model, get_dataset, get_criterion,get_optimizer,\
+     get_lr_scheduler, get_experiment_name
+
+from tensorflow.compat.v1 import ConfigProto
+from tensorflow.compat.v1 import InteractiveSession
+
+config = ConfigProto()
+config.gpu_options.allow_growth = True
+session = InteractiveSession(config=config)
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--dataset", default="sim_real", help='[sim_real, c10, mnist]', type=str)
 parser.add_argument("--model-name", required=True, help='[preact18, preact34, preact50 ]', type=str)
 parser.add_argument("--criterion", default="crossentropy", help="[crossentropy,]",type=str)
 parser.add_argument("--optimizer", default="adam", help="[adam,]", type=str)
-parser.add_argument("--learning-rate", default=1e-3, type=float)
+parser.add_argument("--learning-rate", default=1e-4, type=float)
 parser.add_argument("--beta-1", default=0.9, type=float)
 parser.add_argument("--beta-2", default=0.999, type=float)
 parser.add_argument("--batch-size",default=16, type=int)
@@ -24,7 +32,15 @@ parser.add_argument("--mixed-precision", action="store_true")
 parser.add_argument("--lr-scheduler", default="cosine", type=str, help=["cosine"])
 parser.add_argument("--warmup-epoch", default=5, type=int)
 parser.add_argument("--patience", default=5, type=int)
+parser.add_argument("--freeze", action="store_true")
+parser.add_argument("--freeze-upto", default="5")
 args = parser.parse_args()
+
+if args.model_name=='effb3':
+    args.size=300
+elif args.model_name=='effb4':
+    args.size=380
+args.padding = int(args.size//8)
 
 with open("data/api_key.txt",'r') as f:
     api_key = f.readline()
@@ -47,7 +63,8 @@ optimizer = get_optimizer(args)
 lr_scheduler = get_lr_scheduler(args)
 early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', mode='max', patience=args.patience, restore_best_weights=True)
 model.compile(loss=criterion, optimizer=optimizer, metrics=['accuracy'])
-logger.set_name(f"{args.model_name}")
+experiment_name = get_experiment_name(args)
+logger.set_name(experiment_name)
 with logger.train():
     # import IPython; IPython.embed() ; exit(1)
     logger.log_parameters(vars(args))
