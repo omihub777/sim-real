@@ -155,7 +155,7 @@ def get_dataset(args):
         lambda image: tfa.image.shear_x(image, 0.05, replace=1.),
         lambda image: tfa.image.shear_y(image, 0.05, replace=1.),
         tfa.image.gaussian_filter2d,
-        lambda image: tfa.image.random_cutout(image[tf.newaxis,], (args.size//16, args.size//16), constant_values=0)[0],
+        lambda image: tfa.image.random_cutout(image[tf.newaxis,], (args.size//8, args.size//8), constant_values=0)[0],
         lambda image: tfa.image.rotate(image, angles=tf.random.uniform(shape=(1,), minval=-args.angle*np.pi, maxval=args.angle*np.pi, dtype=tf.float32)),
         tfa.image.equalize,
     ]
@@ -341,6 +341,8 @@ def get_experiment_name(args):
     experiment_name = f"{args.model_name}"
     if args.freeze:
         experiment_name += f"_freeze_{args.freeze_upto}"
+    if args.augmix:
+        experiment_name += f"_augmix"
     return experiment_name
 
 
