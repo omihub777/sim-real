@@ -1,11 +1,12 @@
-import tensorflow as tf
 import sys
 import os
 import glob
+import pickle
 
 sys.path.append(os.path.abspath("data"))
 
 import numpy as np
+import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras import backend as K
 from tensorflow.keras.callbacks import (
@@ -13,8 +14,11 @@ from tensorflow.keras.callbacks import (
     LearningRateScheduler,
     TensorBoard
 )
-import pickle
+import tensorflow_addons as tfa
 
+
+
+from criterions import AugMixSparseCategoricalCrossEntropy
 
 # Code: https://gist.github.com/scorrea92/b9485cbe26cb010e81af02b6c5d0c2ab
 class WarmUpCosineDecayScheduler(keras.callbacks.Callback):
@@ -143,6 +147,18 @@ class WarmUpCosineDecayScheduler(keras.callbacks.Callback):
 
 
 def get_dataset(args):
+    operations = [
+        lambda image: tf.image.random_brightness(image, 0.2),
+        lambda image: tf.image.random_contrast(image, lower=0.7, upper=1.3),
+        lambda image: tf.image.random_hue(image, .1),
+        lambda image: tfa.image.sharpness(image, tf.random.uniform(shape=(1,), minval=0.8, maxval=1.2)),
+        lambda image: tfa.image.shear_x(image, 0.05, replace=1.),
+        lambda image: tfa.image.shear_y(image, 0.05, replace=1.),
+        tfa.image.gaussian_filter2d,
+        lambda image: tfa.image.random_cutout(image[tf.newaxis,], (args.size//16, args.size//16), constant_values=0)[0],
+        lambda image: tfa.image.rotate(image, angles=tf.random.uniform(shape=(1,), minval=-args.angle*np.pi, maxval=args.angle*np.pi, dtype=tf.float32)),
+        tfa.image.equalize,
+    ]
     def parse_function(filename, label):
         image_string = tf.io.read_file(filename)
         image = tf.io.decode_png(image_string, channels=3)
@@ -156,17 +172,32 @@ def get_dataset(args):
         image = tf.image.random_flip_up_down(image)
         image = tf.image.resize_with_crop_or_pad(image, args.size+args.padding*2, args.size+args.padding*2)
         image = tf.image.random_crop(image, [args.size, args.size, 3])
-        image = tf.image.random_brightness(image, 0.2)
-        image = tf.image.random_contrast(image, lower=0.8, upper=1.2)
         return image, label
+
+    def augmix_preprocess(image, label):
+        weights = np.random.dirichlet((args.augmix_alpha, args.augmix_alpha, args.augmix_alpha))
+        image_aug = tf.zeros_like(image)
+
+        for w in weights:
+            op1, op2, op3 = np.random.choice(operations, size=3, replace=False)
+            op12, op123 = lambda image: op2(op1(image)), lambda image: op3(op2(op1(image)))
+            chain = np.random.choice([op1, op12, op123])
+            image_aug += w*chain(image)
+        m = np.random.beta(args.augmix_alpha, args.augmix_alpha)
+        image = m*image + (1.-m)*image_aug
+        return image, label
+
 
     if args.dataset == 'sim_real':
         # list_ds = tf.data.Dataset.list_files("data/trainB")
-        train_img_paths_all = glob.glob(f"{args.data_path}/mask/*.png")
+        # train_img_paths_all = glob.glob(f"{args.data_path}/mask/*.png")
+        train_img_paths_all = glob.glob(f"{args.data_path}/new_mask/*/*.png")
+
         # test_img_paths = glob.glob(f"{args.data_path}/valB/*.jpg")
         # test_img_paths = glob.glob(f"{args.data_path}/trainB/*.jpg")
         # test_img_paths = glob.glob(f"{args.data_path}/trainB_mask/*.png")
-        test_img_paths = glob.glob(f"{args.data_path}/trainB_mask_bk/*.png")
+        # test_img_paths = glob.glob(f"{args.data_path}/trainB_mask_bk/*.png")
+        test_img_paths = glob.glob(f"{args.data_path}/new_test_mask/*/*.jpg")
         args.total_test_images = len(test_img_paths)
         with open(f'{args.data_path}/id_to_object.txt','r') as f:
             id_to_object = f.readlines()
@@ -174,7 +205,11 @@ def get_dataset(args):
         id_to_object_dict = {l.split('  ')[0]: int(l.split('  ')[1].replace('\n','')) for l in id_to_object}
         # object_to_label_dict = {object_:i for i,object_ in enumerate(id_to_object_dict.values())}
 
-        test_ids = [img_path.split('/')[-1].split('_')[0] for img_path in test_img_paths]
+        # test_ids = [img_path.split('/')[-1].split('_')[0] for img_path in test_img_paths]
+        test_ids = [img_path.split('/')[-2] for img_path in test_img_paths]
+
+        # for test_id in set(test_ids):
+        #     print(f"{test_id}: {id_to_object_dict.get(test_id)}")
         test_object_set = [id_to_object_dict.get(test_id) for test_id in set(test_ids)]
         if not os.path.exists("data/object_to_label_dict.dict"):
             object_to_label_dict = {object_:i for i,object_ in enumerate(test_object_set)}
@@ -185,14 +220,15 @@ def get_dataset(args):
                 object_to_label_dict = pickle.load(f)
         args.num_classes = len(test_object_set)
 
-        # train_img_paths = [img_path for img_path in train_img_paths_all if int(img_path.split('-')[-1].replace('object','').replace('.png','')) in test_object_set]
         train_img_paths = []
         for img_path in train_img_paths_all:
-            object_ = int(img_path.split('-')[-1].replace('object','').replace('.png',''))
+            # object_ = int(img_path.split('-')[-1].replace('object','').replace('.png','')) # old
+            object_ = int(img_path.split('/')[-2])
             if object_ in test_object_set:
                 train_img_paths.append(img_path)
         args.total_train_images = len(train_img_paths)
-        train_labels = [object_to_label_dict[int(img_path.split('-')[-1].replace('object','').replace('.png',''))] for img_path in train_img_paths]
+        # train_labels = [object_to_label_dict[int(img_path.split('-')[-1].replace('object','').replace('.png',''))] for img_path in train_img_paths] # old
+        train_labels = [object_to_label_dict[int(img_path.split('/')[-2])] for img_path in train_img_paths]
         test_labels = [object_to_label_dict[id_to_object_dict[id_]] for id_ in test_ids]
         # import IPython ; IPython.embed();exit(1)
 
@@ -200,8 +236,12 @@ def get_dataset(args):
         train_ds = train_ds.shuffle(len(train_labels))
         train_ds = train_ds.map(parse_function, num_parallel_calls=4)
         train_ds = train_ds.map(train_preprocess, num_parallel_calls=4)
+        if args.augmix:
+            train_ds = train_ds.map(augmix_preprocess, num_parallel_calls=4)
         train_ds = train_ds.batch(args.batch_size)
         train_ds= train_ds.prefetch(1)
+
+
         # import IPython; IPython.embed();exit(1)
         test_ds = tf.data.Dataset.from_tensor_slices((test_img_paths, test_labels))
         test_ds = test_ds.map(parse_function, num_parallel_calls=4)
@@ -227,14 +267,26 @@ def get_dataset(args):
         raise NotImplementedError(f"{args.dataset} is NOT existing.")
     return train_ds, test_ds
     
-# if __name__ == "__main__":
-#     import argparse
-#     args = argparse.Namespace()
-#     args.dataset = 'sim_real'
-#     args.batch_size = 16
-#     args.eval_batch_size = 64
-#     args.data_path = 'data'
-#     train_ds, test_ds = get_dataset(args)
+if __name__ == "__main__":
+    import argparse
+    import matplotlib.pyplot as plt
+    args = argparse.Namespace()
+    args.dataset = 'sim_real'
+    args.batch_size = 8
+    args.eval_batch_size = 64
+    args.data_path = 'data'
+    args.size=128
+    args.padding=4
+    args.augmix=True
+    args.augmix_alpha=0.5
+    args.angle=np.pi*0.05
+    train_ds, test_ds = get_dataset(args)
+    img, label = next(iter(train_ds))
+    for i in range(args.batch_size):
+        plt.imshow(img[i])
+        plt.show()
+    # plt.show()
+    # import IPython; IPython.embed();exit(1)
 
 
 def get_model(args):
@@ -260,7 +312,10 @@ def get_model(args):
 def get_criterion(args):
     if args.criterion=='crossentropy':
         # label should be integer.(NOT ONE-HOT)
-        criterion = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+        if args.jsd:
+            criterion = AugMixSparseCategoricalCrossEntropy()
+        else:
+            criterion = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
     else:
         raise NotImplementedError(f"{args.criterion} is NOT existing.")
 
@@ -287,3 +342,11 @@ def get_experiment_name(args):
     if args.freeze:
         experiment_name += f"_freeze_{args.freeze_upto}"
     return experiment_name
+
+
+def image_grid(x, size=4):
+    t = tf.unstack(x[:size * size], num=size*size, axis=0)
+    rows = [tf.concat(t[i*size:(i+1)*size], axis=0) 
+            for i in range(size)]
+    image = tf.concat(rows, axis=1)
+    return image[None]
