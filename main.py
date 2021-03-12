@@ -16,9 +16,8 @@ config.gpu_options.allow_growth = True
 session = InteractiveSession(config=config)
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--data-path",required=True)
-parser.add_argument("--model-name", required=True, help='[preact18, preact34, preact50 ]', type=str)
-
+parser.add_argument("--data-path",default="data")
+parser.add_argument("--model-name", default="preact50", help='[preact18, preact34, preact50 ]')
 parser.add_argument("--dataset", default="sim_real", help='[sim_real, c10, mnist]', type=str)
 parser.add_argument("--criterion", default="crossentropy", help="[crossentropy,]",type=str)
 parser.add_argument("--optimizer", default="adam", help="[adam,]", type=str)
@@ -35,6 +34,14 @@ parser.add_argument("--warmup-epoch", default=5, type=int)
 parser.add_argument("--patience", default=5, type=int)
 parser.add_argument("--freeze", action="store_true")
 parser.add_argument("--freeze-upto", default="2")
+parser.add_argument("--dry-run", action="store_true")
+
+parser.add_argument("--brightness-coef", default=0.03, type=float)
+parser.add_argument("--contrast-coef", default=0.1,type=float)
+parser.add_argument("--hue-coef", default=0.03, type=float)
+parser.add_argument("--shear-coef", default=0.3, type=float)
+parser.add_argument("--mean-filter-size", default=2, type=int)
+parser.add_argument("--cutout-coef", default=8, type=int)
 parser.add_argument("--angle", default=0.05, type=int)
 
 parser.add_argument("--augmix", action="store_true")
@@ -42,6 +49,10 @@ parser.add_argument("--jsd", action="store_true")
 parser.add_argument("--augmix-alpha", default=0.1, type=float)
 
 args = parser.parse_args()
+
+if args.dry_run:
+    args.epochs = 1
+    args.eval_batch_size = 16
 
 if args.augmix and not args.jsd:
     print("[WARNING] JSD is turned off.")
@@ -74,24 +85,30 @@ criterion = get_criterion(args)
 optimizer = get_optimizer(args)
 lr_scheduler = get_lr_scheduler(args)
 early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', mode='max', patience=args.patience, restore_best_weights=True)
-model.compile(loss=criterion, optimizer=optimizer, metrics=['accuracy'])
 experiment_name = get_experiment_name(args)
 logger.set_name(experiment_name)
+logger.log_parameters(vars(args))
 with logger.train():
-    logger.log_parameters(vars(args))
     filename =f'{args.model_name}.hdf5'
-    mc = tf.keras.callbacks.ModelCheckpoint(filename, monitor='val_accuracy', mode='max', save_best_only=True, verbose=True)
-    model.fit(train_ds, validation_data=test_ds, epochs=args.epochs, callbacks=[lr_scheduler, early_stop, mc])
-    # model.save_weights(filename)
+    checkpoint = tf.keras.callbacks.ModelCheckpoint(filename, monitor='val_accuracy', mode='max', save_best_only=True, verbose=True)
+
+    model.compile(loss=criterion, optimizer=optimizer, metrics=['accuracy'])
+    if args.dry_run:
+        print("[INFO] Turn off all callbacks")
+        model.fit(train_ds, validation_data=test_ds, epochs=args.epochs, steps_per_epoch=2)
+    else:
+        model.fit(train_ds, validation_data=test_ds, epochs=args.epochs, callbacks=[lr_scheduler, early_stop, checkpoint])
+
+    model.save_weights(filename)
     logger.log_asset(filename)
 
-    # Load model weights.
-    model = get_model(args)
-    model.build((2, 224,224,3)) # Build
-    model.load_weights(filename) # Load
-    # Compile
-    model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['acc'])
-    model.evaluate(test_ds) # Evaluate
+    # # Load model weights.
+    # model = get_model(args)
+    # model.build((2, 224,224,3)) # Build
+    # model.load_weights(filename) # Load
+    # # Compile
+    # model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['acc'])
+    # model.evaluate(test_ds) # Evaluate
 
 # if __name__ == "__main__":
 #     b, h, w, c = 4, 224, 224, 3

@@ -16,7 +16,7 @@ class PreAct50(tf.keras.Model):
                 raise ValueError()
 
             self._freeze()
-
+        
     def _freeze(self):
         trainable = False
         for layer in self.net.layers:
@@ -31,7 +31,6 @@ class PreAct50(tf.keras.Model):
         out = self.net(x)
         out = self.fc(out)
         return out
-
 
 if __name__ == "__main__":
     b,h,w,c = 4,224, 224, 3

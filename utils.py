@@ -3,6 +3,8 @@ import os
 import glob
 import pickle
 
+from tensorflow_addons.image.filters import mean_filter2d
+
 sys.path.append(os.path.abspath("data"))
 
 import numpy as np
@@ -148,16 +150,18 @@ class WarmUpCosineDecayScheduler(keras.callbacks.Callback):
 
 def get_dataset(args):
     operations = [
-        lambda image: tf.image.random_brightness(image, 0.2),
-        lambda image: tf.image.random_contrast(image, lower=0.7, upper=1.3),
-        lambda image: tf.image.random_hue(image, .1),
-        lambda image: tfa.image.sharpness(image, tf.random.uniform(shape=(1,), minval=0.8, maxval=1.2)),
-        lambda image: tfa.image.shear_x(image, 0.05, replace=0.),
-        lambda image: tfa.image.shear_y(image, 0.05, replace=0.),
-        tfa.image.gaussian_filter2d,
-        lambda image: tfa.image.random_cutout(image[tf.newaxis,], (args.size//8, args.size//8), constant_values=0)[0],
+        lambda image: tf.image.random_hue(image, args.hue_coef),
+        lambda image: tfa.image.shear_x(image, np.random.uniform(-args.shear_coef, args.shear_coef), replace=0.),
+        lambda image: tfa.image.shear_y(image, np.random.uniform(-args.shear_coef, args.shear_coef), replace=0.),
+        lambda image: tfa.image.mean_filter2d(image, filter_shape=[args.mean_filter_size, args.mean_filter_size]),
+        lambda image: tfa.image.random_cutout(image[tf.newaxis,], (args.size//args.cutout_coef, args.size//args.cutout_coef), constant_values=0)[0],
         lambda image: tfa.image.rotate(image, angles=tf.random.uniform(shape=(1,), minval=-args.angle*np.pi, maxval=args.angle*np.pi, dtype=tf.float32)),
-        tfa.image.equalize,
+
+        # lambda image: tf.image.random_brightness(image, args.brightness_coef),
+        # lambda image: tf.image.random_contrast(image, lower=1.-args.contrast_coef, upper=1.+args.contrast_coef),
+        # tfa.image.gaussian_filter2d,
+        # lambda image: tfa.image.sharpness(image, tf.random.uniform(shape=(1,), minval=0.8, maxval=1.2)),
+        # tfa.image.equalize,
     ]
     def parse_function(filename, label):
         image_string = tf.io.read_file(filename)
@@ -184,6 +188,7 @@ def get_dataset(args):
             chain = np.random.choice([op1, op12, op123])
             image_aug += w*chain(image)
         m = np.random.beta(args.augmix_alpha, args.augmix_alpha)
+        # m = 1.
         image = m*image + (1.-m)*image_aug
         return image, label
 
